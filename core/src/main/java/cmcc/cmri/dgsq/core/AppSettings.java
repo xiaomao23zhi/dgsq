@@ -11,13 +11,14 @@ import java.io.File;
 
 public class AppSettings {
 
-    public static final Configuration config;
     private static final Logger logger = LogManager.getLogger(AppSettings.class);
+
+    public static final Configuration config;
 
     static {
 
         // Init application configuration
-        Configuration c = null;
+        Configuration c;
         try {
             Configurations configs = new Configurations();
             c = configs.properties(new File("application.properties"));
