@@ -34,17 +34,25 @@ public class XDR {
     // xdr file type, support txt, cvs
     private String type;
 
+    // xdr file name
+    private String file;
+
     XDR() {
 
     }
 
-    // Pharse XDR with standard file pattern: [interface]_[yyyymmddHHmmss]_vendor_device_sequence.txt
-    XDR(String file) {
+    // Pharse XDR with standard file pattern: [name]_[yyyymmddHHmmss]_[vendor]_[device]_[sequence].txt
+    XDR(String xdrFile) {
+
+        logger.trace("Phrase XDR from {}", xdrFile);
 
         try {
+            // http_20180703150000_01_001_000.txt
+            this.file = xdrFile.substring(xdrFile.lastIndexOf("/") + 1);
             this.type = file.split("\\.")[1];
 
             String pattern = file.split("\\.")[0];
+            logger.debug("pattern is [{}]", pattern);
             String[] patterns = pattern.split("_");
 
             this.name = patterns[0];
@@ -55,8 +63,8 @@ public class XDR {
 
             this.delimiter = AppSettings.config.getString("xdr.file.delimiter");
 
-            logger.debug("XDR is [{}] [{}] [{}] [{}] [{}] [{}] [{}]",
-                    this.name, this.date, this.vendor, this.device, this.sequence, this.type, this.delimiter);
+            logger.debug("XDR is [{}] [{}] [{}] [{}] [{}] [{}] [{}] [{}]",
+                    this.file, this.name, this.date, this.vendor, this.device, this.sequence, this.type, this.delimiter);
 
         } catch (Exception e) {
             logger.error("Cannot phrase xdr file {}.", file);
@@ -121,11 +129,20 @@ public class XDR {
         this.type = type;
     }
 
+    public String getFile() {
+        return file;
+    }
+
+    public void setFile(String file) {
+        this.file = file;
+    }
 
     public static void main(String[] args) {
 
         logger.trace("Entering");
-        XDR xdr = new XDR("http_20180920143741_01_001_001.txt");
+        XDR xdr = new XDR("hdfs:///user/hadoop/dgsq/xdr/in/20180703/http_20180703150000_01_001_000.txt");
         logger.trace("Exiting");
+
+        logger.trace(AppSettings.config.getString("app.version"));
     }
 }
