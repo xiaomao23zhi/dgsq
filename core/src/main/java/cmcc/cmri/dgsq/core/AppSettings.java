@@ -1,13 +1,10 @@
 package cmcc.cmri.dgsq.core;
 
-
-import org.apache.commons.configuration2.Configuration;
-import org.apache.commons.configuration2.builder.fluent.Configurations;
-import org.apache.commons.configuration2.ex.ConfigurationException;
+import org.apache.commons.configuration.Configuration;
+import org.apache.commons.configuration.ConfigurationException;
+import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
-import java.io.File;
 
 public class AppSettings {
 
@@ -20,8 +17,8 @@ public class AppSettings {
         // Init application configuration
         Configuration c;
         try {
-            Configurations configs = new Configurations();
-            c = configs.properties(new File("application.properties"));
+            PropertiesConfiguration configs = new PropertiesConfiguration("application.properties");
+            c = configs;
 
             logger.debug("Loading AppSettings");
 
