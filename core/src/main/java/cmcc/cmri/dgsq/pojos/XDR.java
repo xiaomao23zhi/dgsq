@@ -2,14 +2,19 @@
  *
  */
 
-package cmcc.cmri.dgsq.core;
+package cmcc.cmri.dgsq.pojos;
 
+import cmcc.cmri.dgsq.core.AppSettings;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.io.Serializable;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 
 // XDR bean
-public class XDR {
+public class XDR implements Serializable {
 
     private static final Logger logger = LogManager.getLogger(XDR.class);
 
@@ -22,7 +27,7 @@ public class XDR {
     // xdr interface
     private String name;
 
-    // xdr date, format is yyyymmddHHmmss
+    // xdr date, format is yyyy-mm-dd HH:mm:ss
     private String date;
 
     // xdr file sequence
@@ -42,7 +47,7 @@ public class XDR {
     }
 
     // Pharse XDR with standard file pattern: [name]_[yyyymmddHHmmss]_[vendor]_[device]_[sequence].txt
-    XDR(String xdrFile) {
+    public XDR(String xdrFile) {
 
         logger.trace("Phrase XDR from {}", xdrFile);
 
@@ -55,8 +60,10 @@ public class XDR {
             logger.debug("pattern is [{}]", pattern);
             String[] patterns = pattern.split("_");
 
+            Date dateString = new SimpleDateFormat("yyyyMMddHHmmss").parse(patterns[1]);
+
             this.name = patterns[0];
-            this.date = patterns[1];
+            this.date = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(dateString);
             this.vendor = patterns[2];
             this.device = patterns[3];
             this.sequence = patterns[4];
