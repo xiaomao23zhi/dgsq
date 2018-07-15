@@ -4,7 +4,7 @@
 
 package cmcc.cmri.dgsq.pojos;
 
-import cmcc.cmri.dgsq.core.AppSettings;
+import cmcc.cmri.dgsq.run.AppSettings;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -26,6 +26,9 @@ public class XDR implements Serializable {
 
     // xdr interface
     private String name;
+
+    // xdr schemas
+    private String schemas;
 
     // xdr date, format is yyyy-mm-dd HH:mm:ss
     private String date;
@@ -70,8 +73,8 @@ public class XDR implements Serializable {
 
             this.delimiter = AppSettings.config.getString("xdr.file.delimiter");
 
-            logger.debug("XDR is [{}] [{}] [{}] [{}] [{}] [{}] [{}] [{}]",
-                    this.file, this.name, this.date, this.vendor, this.device, this.sequence, this.type, this.delimiter);
+            logger.debug("XDR is [{}] [{}] [{}] [{}] [{}] [{}] [{}] [{}] [{}]",
+                    this.file, this.name, this.date, this.vendor, this.device, this.sequence, this.type, this.delimiter, this.schemas);
 
         } catch (Exception e) {
             logger.error("Cannot phrase xdr file {}.", file);
@@ -106,6 +109,14 @@ public class XDR implements Serializable {
 
     public String getDate() {
         return date;
+    }
+
+    public String getSchemas() {
+        return schemas;
+    }
+
+    public void setSchemas(String schemas) {
+        this.schemas = schemas;
     }
 
     public void setDate(String date) {

@@ -1,4 +1,4 @@
-package cmcc.cmri.dgsq.core;
+package cmcc.cmri.dgsq.run;
 
 import com.mongodb.MongoClient;
 import com.mongodb.client.MongoCollection;
@@ -57,6 +57,7 @@ public class MongoManager {
 
     // Insert document
     public static void insert(String db, String name, Document document) {
+        logger.trace("Write to MongoDB: {}/{}.{}", db, name, document);
         MongoCollection collection = client.getDatabase(db).getCollection(name);
         collection.insertOne(document);
     }

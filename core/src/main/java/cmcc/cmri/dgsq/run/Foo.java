@@ -1,11 +1,23 @@
-package cmcc.cmri.dgsq.core;
+package cmcc.cmri.dgsq.run;
 
 import cmcc.cmri.dgsq.pojos.XDR;
 import com.mongodb.client.MongoCursor;
 import com.mongodb.client.MongoDatabase;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.apache.spark.api.java.JavaRDD;
+import org.apache.spark.api.java.function.Function;
+import org.apache.spark.sql.Dataset;
+import org.apache.spark.sql.Row;
+import org.apache.spark.sql.RowFactory;
+import org.apache.spark.sql.SparkSession;
+import org.apache.spark.sql.types.DataTypes;
+import org.apache.spark.sql.types.StructField;
+import org.apache.spark.sql.types.StructType;
 import org.bson.Document;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import static com.mongodb.client.model.Filters.and;
 import static com.mongodb.client.model.Filters.eq;
@@ -69,11 +81,47 @@ public class Foo {
         }
     }
 
+    public void runSpark() {
+
+        SparkSession spark = SparkSession
+                .builder()
+                .appName("Java Spark SQL basic example")
+                .config("spark.some.config.option", "some-value")
+                .getOrCreate();
+
+        JavaRDD<String> peopleRDD = spark.sparkContext()
+                .textFile("hdfs:///user/hadoop/people.txt", 1)
+                .toJavaRDD();
+
+        // The schema is encoded in a string
+        String schemaString = "name age unknown";
+
+        // Generate the schema based on the string of schema
+        List<StructField> fields = new ArrayList<>();
+        for (String fieldName : schemaString.split(" ")) {
+            StructField field = DataTypes.createStructField(fieldName, DataTypes.StringType, true);
+            fields.add(field);
+        }
+        StructType schema = DataTypes.createStructType(fields);
+
+        JavaRDD<Row> rowRDD = peopleRDD.map((Function<String, Row>) record -> {
+            String[] attributes = record.split(",");
+            return RowFactory.create(attributes);
+        });
+        // Apply the schema to the RDD
+        Dataset<Row> peopleDataFrame = spark.createDataFrame(rowRDD, schema);
+
+        peopleDataFrame.show();
+
+        spark.close();
+
+    }
+
     public static void main(String[] args) {
 
         logger.trace("APP VERSION:[{}]", AppSettings.config.getString("app.version"));
 
         Foo foo = new Foo();
-        foo.run();
+        foo.runSpark();
     }
 }

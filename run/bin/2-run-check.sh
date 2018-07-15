@@ -5,7 +5,7 @@
 #
 ###############################################################################
 function print_log() {
-    DATE=`date "+%Y-%m-%d %H:%M:%S"` 
+    DATE=`date "+%Y-%m-%d %H:%M:%S"`
     USER=$(whoami)
     echo "${DATE} ${USER} [INFO] $0 $@"
 }

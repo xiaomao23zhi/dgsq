@@ -1,4 +1,4 @@
-package cmcc.cmri.dgsq.core;
+package cmcc.cmri.dgsq.run;
 
 import cmcc.cmri.dgsq.pojos.XDR;
 import com.mongodb.client.MongoCollection;
@@ -22,9 +22,9 @@ import java.util.Date;
 import static com.mongodb.client.model.Filters.and;
 import static com.mongodb.client.model.Filters.eq;
 
-public class RunCheck {
+public class RunCheck2 {
     // Define a static logger
-    private static final Logger logger = LogManager.getLogger(RunCheck.class);
+    private static final Logger logger = LogManager.getLogger(RunCheck2.class);
     // Dataset for xdr file
     Dataset<String> df;
     // XDR
@@ -44,7 +44,7 @@ public class RunCheck {
     // File xdrCount
     private long xdrCount;
 
-    RunCheck(String xdrFile) {
+    RunCheck2(String xdrFile) {
         // Phrase XDR from xdr file, pattern: hdf:///[path]/[name]_yyyymmddHHMMSS_[vendor]_[device ID]_[sequence].txt
         this.xdrFile = xdrFile;
         xdr = new XDR(xdrFile);
@@ -78,7 +78,7 @@ public class RunCheck {
         logger.trace("Build SparkSession with urls: [{}] [{}]", mongoInputUri, mongoOutputUri);
 
         // Init Spark
-        spark = SparkSession.builder().appName("dgsq - RuleCheck")
+        spark = SparkSession.builder().appName("dgsq - RunCheck")
                 .config("spark.mongodb.input.uri", mongoInputUri)
                 .config("spark.mongodb.output.uri", mongoOutputUri)
                 .getOrCreate();
@@ -94,9 +94,9 @@ public class RunCheck {
             System.exit(1);
         }
 
-        logger.trace("Starting RunCheck on XDR file: [{}]", args[0]);
+        logger.trace("Starting RunCheck2 on XDR file: [{}]", args[0]);
 
-        RunCheck runCheck = new RunCheck(args[0]);
+        RunCheck2 runCheck = new RunCheck2(args[0]);
 
         runCheck.init();
         runCheck.fileCheck();
@@ -109,7 +109,7 @@ public class RunCheck {
     }
 
     public static void usage() {
-        logger.error("Usage: RunCheck [xdr file]. eg: RunCheck hdfs:///user/hadoop/xdr/http.txt");
+        logger.error("Usage: RunCheck2 [xdr file]. eg: RunCheck2 hdfs:///user/hadoop/xdr/http.txt");
     }
 
     // Load xdr file
@@ -261,6 +261,7 @@ public class RunCheck {
                 document.put("dpi_vendor", xdr.getVendor() + "_" + xdr.getDevice());
                 document.put("interface_name", xdr.getName());
                 document.put("file_name", xdr.getFile());
+                document.put("file_date", xdr.getDate());
                 document.put("check_target", checkTarget);
                 document.put("check_id", checkId);
                 document.put("check_counts", xdrCount);
