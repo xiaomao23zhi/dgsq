@@ -214,8 +214,12 @@ public class RunCheck {
             // Apply the schema to the RDD
             Dataset<Row> ds = spark.createDataFrame(rowRDD, schema);
 
-            // Creates a temporary view using the DataFrame
-            ds.createOrReplaceTempView(xdr.getName());
+            //// Creates a temporary view using the DataFrame
+            //ds.createOrReplaceTempView(xdr.getName());
+            // Convert to Parquet for better performance
+            ds.write().parquet(xdr.getName() + ".parquet");
+            Dataset<Row> dsParquet = spark.read().parquet(xdr.getName() + ".parquet");
+            dsParquet.createOrReplaceTempView(xdr.getName());
 
             // Step 2. Get all active checks for the XDR
             checks = mongo.getCollection("q_checks")

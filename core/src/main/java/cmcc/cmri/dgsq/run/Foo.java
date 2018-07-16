@@ -122,6 +122,6 @@ public class Foo {
         logger.trace("APP VERSION:[{}]", AppSettings.config.getString("app.version"));
 
         Foo foo = new Foo();
-        foo.runSpark();
+        //foo.runSpark();
     }
 }
