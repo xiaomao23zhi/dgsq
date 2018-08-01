@@ -76,6 +76,10 @@ public class MongoManager {
                 .find(filter).iterator();
     }
 
+    public static void deleteMany(String db, String collection, Bson bson) {
+        client.getDatabase(db).getCollection(collection).deleteMany(bson);
+    }
+
     // Close connection
     public static void close() {
         client.close();

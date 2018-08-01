@@ -72,6 +72,7 @@ public class XDR implements Serializable {
             this.sequence = patterns[4];
 
             this.delimiter = AppSettings.config.getString("xdr.file.delimiter");
+            this.schemas=AppSettings.config.getString("xdr.schema." + this.name);
 
             logger.debug("XDR is [{}] [{}] [{}] [{}] [{}] [{}] [{}] [{}] [{}]",
                     this.file, this.name, this.date, this.vendor, this.device, this.sequence, this.type, this.delimiter, this.schemas);

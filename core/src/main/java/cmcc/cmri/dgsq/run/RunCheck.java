@@ -13,14 +13,12 @@ import org.apache.logging.log4j.Logger;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.api.java.function.Function;
-import org.apache.spark.sql.Dataset;
-import org.apache.spark.sql.Row;
-import org.apache.spark.sql.RowFactory;
-import org.apache.spark.sql.SparkSession;
+import org.apache.spark.sql.*;
 import org.apache.spark.sql.types.DataTypes;
 import org.apache.spark.sql.types.StructField;
 import org.apache.spark.sql.types.StructType;
 import org.bson.Document;
+import org.bson.conversions.Bson;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -130,6 +128,13 @@ public class RunCheck {
                 .textFile(xdrFile, 8)
                 .toJavaRDD().cache();
         result = AppSettings.config.getString("check.file.ERR");
+
+
+        // Clean q_result_f and q_result_r
+        logger.trace("Clean q_result_f and q_result_r records of XDR: [{}]", xdr.getFile());
+        Bson filter = eq("file_name",xdr.getFile());
+        MongoManager.deleteMany(AppSettings.config.getString("mongo.db"), "q_results_f", filter);
+        MongoManager.deleteMany(AppSettings.config.getString("mongo.db"), "q_results_r", filter);
     }
 
     //
@@ -182,7 +187,8 @@ public class RunCheck {
         document.put("check_result", result);
         document.put("timestamp", new Date());
 
-        MongoManager.insert(AppSettings.config.getString("mongo.d"), "q_results_f", document);
+        // Insert new
+        MongoManager.insert(AppSettings.config.getString("mongo.db"), "q_results_f", document);
 
         //logger.trace("Logging to MongoDB");
         //collection.insertOne(document);
@@ -196,30 +202,37 @@ public class RunCheck {
         // MongoDB connector
         MongoCursor<Document> checks = null;
 
+        String delimiter = xdr.getDelimiter();
+
         try {
             // Step 1. Generate the schema based on the string of schema
             logger.trace("Generate XDR schema");
             List<StructField> fields = new ArrayList<>();
-            for (String fieldName : xdr.getSchemas().split(",")) {
+            for (String fieldName : xdr.getSchemas().split("\\|")) {
                 StructField field = DataTypes.createStructField(fieldName, DataTypes.StringType, true);
                 fields.add(field);
             }
             StructType schema = DataTypes.createStructType(fields);
             // Convert records of the RDD (people) to Rows
             JavaRDD<Row> rowRDD = df.map((Function<String, Row>) record -> {
-                String[] attributes = record.split(xdr.getDelimiter());
+                String[] attributes = record.split(delimiter);
                 return RowFactory.create(attributes);
             });
 
             // Apply the schema to the RDD
             Dataset<Row> ds = spark.createDataFrame(rowRDD, schema);
 
-            //// Creates a temporary view using the DataFrame
-            //ds.createOrReplaceTempView(xdr.getName());
-            // Convert to Parquet for better performance
-            ds.write().parquet(xdr.getName() + ".parquet");
-            Dataset<Row> dsParquet = spark.read().parquet(xdr.getName() + ".parquet");
-            dsParquet.createOrReplaceTempView(xdr.getName());
+            // Creates a temporary view using the DataFrame
+            ds.createOrReplaceTempView(xdr.getName());
+            //// Convert to Parquet for better performance
+            //logger.debug("Convert to Parquet");
+            //ds.write().mode(SaveMode.Overwrite).parquet(xdr.getName() + ".parquet");
+            //Dataset<Row> dsParquet = spark.read().parquet(xdr.getName() + ".parquet");
+            //dsParquet.createOrReplaceTempView(xdr.getName());
+            //dsParquet.schema();
+
+            logger.debug("Show schema");
+            ds.show();
 
             // Step 2. Get all active checks for the XDR
             checks = mongo.getCollection("q_checks")
@@ -233,6 +246,7 @@ public class RunCheck {
                 String ruleParams = check.getString("rule_params");
                 String checkId = check.getString("check_id");
                 String checkTarget = check.getString("check_target");
+                String checkName = check.getString("check_name");
                 String yyyymmdd = xdr.getDate().substring(0, 10).replace("-", "");
 
                 // Get rule_sql
@@ -241,7 +255,7 @@ public class RunCheck {
                         .getString("rule_sql");
 
                 // SELECT * FROM [table] WHERE [target] != null
-                ruleSql.replace("table", xdr.getName()).replace("target", checkTarget);
+                ruleSql = ruleSql.replace("[table]", xdr.getName()).replace("[target]", checkTarget).replace("[params]",ruleParams);
                 logger.debug("rule_sql is {}", ruleSql);
 
                 // Step 4. Run rule on file
@@ -271,6 +285,7 @@ public class RunCheck {
                 document.put("interface_name", xdr.getName());
                 document.put("file_name", xdr.getFile());
                 document.put("file_date", xdr.getDate());
+                document.put("check_name", checkName);
                 document.put("check_target", checkTarget);
                 document.put("check_id", checkId);
                 document.put("check_counts", xdrCount);

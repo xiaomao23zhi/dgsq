@@ -19,10 +19,13 @@ if [ $# != 2 ]
 then
     usage
     exit 1
+
 else
     XDR_INTERFACE=$1
     XDR_FILENAME=$2
 fi
+
+# 计算spark-submit提交参数
 
 print_log "Starting rule-check for $XDR_INTERFACE $XDR_FILENAME"
 $SPARK_HOME/bin/spark-submit \

@@ -33,13 +33,13 @@ function mongo_log() {
 }
 
 function usage() {
-   echo "Usage: dgsq-start.sh [args]"
+   echo "Usage: 0-dgsq-start.sh [args]"
 } 
 
 ###############################################################################
 # Main
 ###############################################################################
-print_log "Starting..."
+print_log "Starting 0-start-dgsq.sh..."
 mongo_log $0 $STATUS_RUN "Starting ..."
 xdr_date=`date "+%Y%m%d%H0000"`
 

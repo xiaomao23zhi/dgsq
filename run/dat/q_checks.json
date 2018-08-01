@@ -1,0 +1,209 @@
+{
+  "check_id" : "10010001",
+  "check_name" : "Length空值检查",
+  "interface_name" : "http",
+  "check_target" : "Length",
+  "rule_id" : "1001",
+  "rule_params" : "-",
+  "is_active" : "1",
+  "creater" : "wujia@chinamobile.com",
+  "timestamp" : "2018-06-26 16:20:20"
+}
+{
+  "check_id" : "10010002",
+  "check_name" : "Local_Province空值检查",
+  "interface_name" : "http",
+  "check_target" : "Local_Province",
+  "rule_id" : "1001",
+  "rule_params" : "-",
+  "is_active" : "1",
+  "creater" : "wujia@chinamobile.com",
+  "timestamp" : "2018-06-26 16:20:20"
+}
+{
+  "check_id" : "10010003",
+  "check_name" : "Local_City空值检查",
+  "interface_name" : "http",
+  "check_target" : "Local_City",
+  "rule_id" : "1001",
+  "rule_params" : "-",
+  "is_active" : "1",
+  "creater" : "wujia@chinamobile.com",
+  "timestamp" : "2018-06-26 16:20:20"
+}
+{
+  "check_id" : "10010004",
+  "check_name" : "Owner_Province空值检查",
+  "interface_name" : "http",
+  "check_target" : "Owner_Province",
+  "rule_id" : "1001",
+  "rule_params" : "-",
+  "is_active" : "1",
+  "creater" : "wujia@chinamobile.com",
+  "timestamp" : "2018-06-26 16:20:20"
+}
+{
+  "check_id" : "10010005",
+  "check_name" : "Owner_City空值检查",
+  "interface_name" : "http",
+  "check_target" : "Owner_City",
+  "rule_id" : "1001",
+  "rule_params" : "-",
+  "is_active" : "1",
+  "creater" : "wujia@chinamobile.com",
+  "timestamp" : "2018-06-26 16:20:20"
+}
+{
+  "check_id" : "10010006",
+  "check_name" : "Roaming_Type空值检查",
+  "interface_name" : "http",
+  "check_target" : "Roaming_Type",
+  "rule_id" : "1001",
+  "rule_params" : "-",
+  "is_active" : "1",
+  "creater" : "wujia@chinamobile.com",
+  "timestamp" : "2018-06-26 16:20:20"
+}
+{
+  "check_id" : "10010007",
+  "check_name" : "Interface空值检查",
+  "interface_name" : "http",
+  "check_target" : "Interface",
+  "rule_id" : "1001",
+  "rule_params" : "-",
+  "is_active" : "1",
+  "creater" : "wujia@chinamobile.com",
+  "timestamp" : "2018-06-26 16:20:20"
+}
+{
+  "check_id" : "10010008",
+  "check_name" : "xDR_ID空值检查",
+  "interface_name" : "http",
+  "check_target" : "xDR_ID",
+  "rule_id" : "1001",
+  "rule_params" : "-",
+  "is_active" : "1",
+  "creater" : "wujia@chinamobile.com",
+  "timestamp" : "2018-06-26 16:20:20"
+}
+{
+  "check_id" : "10010009",
+  "check_name" : "IMSI空值检查",
+  "interface_name" : "http",
+  "check_target" : "IMSI",
+  "rule_id" : "1001",
+  "rule_params" : "-",
+  "is_active" : "1",
+  "creater" : "wujia@chinamobile.com",
+  "timestamp" : "2018-06-26 16:20:20"
+}
+{
+  "check_id" : "10010010",
+  "check_name" : "IMEI_SV空值检查",
+  "interface_name" : "http",
+  "check_target" : "IMEI_SV",
+  "rule_id" : "1001",
+  "rule_params" : "-",
+  "is_active" : "1",
+  "creater" : "wujia@chinamobile.com",
+  "timestamp" : "2018-06-26 16:20:20"
+}
+{
+  "check_id" : "10010011",
+  "check_name" : "MSISDN空值检查",
+  "interface_name" : "http",
+  "check_target" : "MSISDN",
+  "rule_id" : "1001",
+  "rule_params" : "-",
+  "is_active" : "1",
+  "creater" : "wujia@chinamobile.com",
+  "timestamp" : "2018-06-26 16:20:20"
+}
+{
+  "check_id" : "10010012",
+  "check_name" : "SGW_GGSN_IP_Add空值检查",
+  "interface_name" : "http",
+  "check_target" : "SGW_GGSN_IP_Add",
+  "rule_id" : "1001",
+  "rule_params" : "-",
+  "is_active" : "1",
+  "creater" : "wujia@chinamobile.com",
+  "timestamp" : "2018-06-26 16:20:20"
+}
+{
+  "check_id" : "10010013",
+  "check_name" : "eNB_SGSN_IP_Add空值检查",
+  "interface_name" : "http",
+  "check_target" : "eNB_SGSN_IP_Add",
+  "rule_id" : "1001",
+  "rule_params" : "-",
+  "is_active" : "1",
+  "creater" : "wujia@chinamobile.com",
+  "timestamp" : "2018-06-26 16:20:20"
+}
+{
+  "check_id" : "10010014",
+  "check_name" : "PGW_Add空值检查",
+  "interface_name" : "http",
+  "check_target" : "PGW_Add",
+  "rule_id" : "1001",
+  "rule_params" : "-",
+  "is_active" : "1",
+  "creater" : "wujia@chinamobile.com",
+  "timestamp" : "2018-06-26 16:20:20"
+}
+{
+  "check_id" : "10010015",
+  "check_name" : "longitude空值检查",
+  "interface_name" : "http",
+  "check_target" : "longitude",
+  "rule_id" : "1001",
+  "rule_params" : "-",
+  "is_active" : "1",
+  "creater" : "wujia@chinamobile.com",
+  "timestamp" : "2018-06-26 16:20:20"
+}
+{
+  "check_id" : "10010016",
+  "check_name" : "latitude空值检查",
+  "interface_name" : "http",
+  "check_target" : "latitude",
+  "rule_id" : "1001",
+  "rule_params" : "-",
+  "is_active" : "1",
+  "creater" : "wujia@chinamobile.com",
+  "timestamp" : "2018-06-26 16:20:20"
+}
+{
+  "check_id" : "10010017",
+  "check_name" : "Height空值检查",
+  "interface_name" : "http",
+  "check_target" : "Height",
+  "rule_id" : "1001",
+  "rule_params" : "-",
+  "is_active" : "1",
+  "creater" : "wujia@chinamobile.com",
+  "timestamp" : "2018-06-26 16:20:20"
+}
+{
+  "check_id" : "10010018",
+  "check_name" : "Coordinate_system空值检查",
+  "interface_name" : "http",
+  "check_target" : "Coordinate_system",
+  "rule_id" : "1001",
+  "rule_params" : "-",
+  "is_active" : "1",
+  "creater" : "wujia@chinamobile.com",
+  "timestamp" : "2018-06-26 16:20:20"
+}
+{
+  "check_id" : "10010019",
+  "check_name" : "App_Type空值检查",
+  "interface_name" : "http",
+  "check_target" : "App_Type",
+  "rule_id" : "1001",
+  "rule_params" : "-",
+  "is_active" : "1",
+  "creater" : "wujia@chinamobile.com",
+  "timestamp" : "2018-06-26 16:20:20"
+}

@@ -1,0 +1,36 @@
+{
+  "rule_id" : "1001",
+  "rule_category" : "完整性",
+  "rule_name" : "空值",
+  "rule_description" : "取值为空（NULL）",
+  "rule_sql" : "SELECT * FROM [table] WHERE [target] = NULL",
+  "creater" : "wujia@chinamobile.com",
+  "timestamp" : "2018-06-26 16:11:23"
+}
+{
+  "rule_id" : "1002",
+  "rule_category" : "完整性",
+  "rule_name" : "零值",
+  "rule_description" : "取值为零（0）",
+  "rule_sql" : "SELECT * FROM [table] WHERE [target] =\"0\"",
+  "creater" : "wujia@chinamobile.com",
+  "timestamp" : "2018-06-26 16:11:23"
+}
+{
+  "rule_id" : "2001",
+  "rule_category" : "规范性",
+  "rule_name" : "字符值域违法",
+  "rule_description" : "如字符应在a、b、c、d、e、f范围之内，但出现了h的非法字符",
+  "rule_sql" : "SELECT * FROM [table] WHERE [target] not in [params]",
+  "creater" : "wujia@chinamobile.com",
+  "timestamp" : "2018-06-26 16:11:23"
+}
+{
+  "rule_id" : "2002",
+  "rule_category" : "规范性",
+  "rule_name" : "有且只有一个非空",
+  "rule_description" : "有且只有一个非空才合法",
+  "rule_sql" : "SELECT * FROM [table] WHERE [params]",
+  "creater" : "wujia@chinamobile.com",
+  "timestamp" : "2018-06-26 16:11:23"
+}
