@@ -292,7 +292,7 @@ public class RunCheck {
                 logger.trace("Finished check rule[{}] on target[{}] with params[{}], abnormal counts[{}]",
                         ruleId, checkTarget, ruleParams, abnCount);
 
-                Dataset<Row> abnLimit = abnormal.limit(AppSettings.config.getInt("xdr.abn,limit"));
+                Dataset<Row> abnLimit = abnormal.limit(AppSettings.config.getInt("xdr.abn.limit"));
 
                 //MongoSpark.write(abnLimit).mode("overwrite").save();
                 logger.trace("Writing abnormal data to MongoDB: {}.{}", yyyymmdd, xdr.getName() + checkId);
