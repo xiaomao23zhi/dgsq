@@ -1,8 +1,10 @@
 package cmcc.cmri.dgsq.run;
 
 import cmcc.cmri.dgsq.pojos.XDR;
-import com.mongodb.client.MongoCursor;
-import com.mongodb.client.MongoDatabase;
+import com.mongodb.BasicDBObject;
+import com.mongodb.DB;
+import com.mongodb.DBCursor;
+import com.mongodb.DBObject;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.spark.api.java.JavaRDD;
@@ -14,44 +16,41 @@ import org.apache.spark.sql.SparkSession;
 import org.apache.spark.sql.types.DataTypes;
 import org.apache.spark.sql.types.StructField;
 import org.apache.spark.sql.types.StructType;
-import org.bson.Document;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import static com.mongodb.client.model.Filters.and;
-import static com.mongodb.client.model.Filters.eq;
 
 public class Foo {
 
     private static final Logger logger = LogManager.getLogger(Foo.class);
 
     // MongoDB connection
-    private MongoDatabase mongo;
+    private DB mongo;
 
     private XDR xdr;
 
-    Foo() {
+    Foo(String xdrFile, String xdrSchema) {
         mongo = MongoManager.getMongoDatabase(AppSettings.config.getString("mongo.db"));
-        xdr = new XDR("hdfs:///user/hadoop/dgsq/xdr/in/20180703/http_20180703150100_01_001_000.txt");
+        //xdr = new XDR("hdfs:///user/hadoop/dgsq/xdr/in/20180703/http_20180703150100_01_001_000.txt");
+        xdr = new XDR(xdrFile, xdrSchema);
     }
 
     public void run() {
-        MongoCursor<Document> checks = mongo.getCollection("q_checks")
-                .find(and(eq("interface_name", "http"),eq("is_active", "1")))
-                .iterator();
+        BasicDBObject filter = new BasicDBObject("interface_name", "http").append("is_active", "1");
+        DBCursor checks = mongo.getCollection("q_checks")
+                .find(filter);
         try {
             while(checks.hasNext()) {
                 // Step 3. Get rule def
-                Document document = checks.next();
-                String target = document.getString("check_target");
-                String ruleId = document.getString("rule_id");
-                String parms = document.getString("rule_params");
+                DBObject document = checks.next();
+                String target = (String) document.get("check_target");
+                String ruleId = (String) document.get("rule_id");
+                String parms = (String) document.get("rule_params");
 
-                Document rule = mongo.getCollection("q_rules")
-                        .find(eq("rule_id", ruleId)).first();
+                DBObject rule = mongo.getCollection("q_rules")
+                        .findOne(new BasicDBObject("rule_id", ruleId));
 
-                String rule_sql = rule.getString("rule_sql");
+                String rule_sql = (String) rule.get("rule_sql");
 
                 String[] schema = AppSettings.config.getString("xdr.schema.http").split("\\|");
                 int idx = -1;
@@ -68,12 +67,12 @@ public class Foo {
 
                 logger.debug("schema: " + schema + "pos: " + idx);
 
-                String filter = rule_sql
+                String sql = rule_sql
                         .replace("[target]", "line -> line.split(" + xdr.getDelimiter() + ")["+idx+"]")
                         .replace("[params]",parms);
 
                 // Step 4. Run rule on file
-                logger.trace("Running rule[{}] on target[{}] filter:[{}]", ruleId, target, filter);
+                logger.trace("Running rule[{}] on target[{}] filter:[{}]", ruleId, target, sql);
             }
 
         } finally {
@@ -120,8 +119,7 @@ public class Foo {
     public static void main(String[] args) {
 
         logger.trace("APP VERSION:[{}]", AppSettings.config.getString("app.version"));
-
-        //Foo foo = new Foo();
-        //foo.runSpark();
+        Foo foo = new Foo(args[0], args[1]);
+        foo.run();
     }
 }

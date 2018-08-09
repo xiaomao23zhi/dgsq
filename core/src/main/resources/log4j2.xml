@@ -5,7 +5,7 @@
             <PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"/>
         </Console>
         <NoSql name="databaseAppender">
-            <MongoDb2 databaseName="dgsq" collectionName="app_log" server="192.168.251.22" port="27017"/>
+            <MongoDb3 databaseName="dgsq" collectionName="q_log4j" server="192.168.251.25" port="27017"/>
         </NoSql>
     </Appenders>
     <Loggers>

@@ -1,16 +1,10 @@
 package cmcc.cmri.dgsq.run;
 
-import com.mongodb.MongoClient;
-import com.mongodb.client.MongoCollection;
-import com.mongodb.client.MongoCursor;
-import com.mongodb.client.MongoDatabase;
+import com.mongodb.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.bson.Document;
-import org.bson.conversions.Bson;
 
 import java.util.Date;
-import static com.mongodb.client.model.Filters.eq;
 
 
 public class MongoManager {
@@ -36,48 +30,60 @@ public class MongoManager {
     }
 
     // Get MongoDB
-    public static MongoDatabase getMongoDatabase(String db) {
-        return client.getDatabase(db);
+    public static DB getMongoDatabase(String db) {
+        return client.getDB(db);
     }
 
     // Get MongoCollection
-    public static MongoCollection getMongoCollection(String db, String col) {
-        return client.getDatabase(db).getCollection(col);
+    public static DBCollection getMongoCollection(String db, String col) {
+        return client.getDB(db).getCollection(col);
     }
 
     // Write to application run log
     public static void writeRunLog(String appName, String runStatus, String message) {
-        MongoCollection runLog = client.getDatabase(AppSettings.config.getString("mongo.db"))
+        DBCollection runLog = client.getDB(AppSettings.config.getString("mongo.db"))
                 .getCollection("q_run_log");
-        Document document = new Document("application_name", appName)
+        BasicDBObject document = new BasicDBObject("application_name", appName)
                 .append("", "")
                 .append("time_stamp", new Date());
-        runLog.insertOne(document);
+        runLog.insert(document);
     }
 
     // Insert document
-    public static void insert(String db, String name, Document document) {
+    public static void insert(String db, String name, BasicDBObject document) {
         logger.trace("Write to MongoDB: {}/{}.{}", db, name, document);
-        MongoCollection collection = client.getDatabase(db).getCollection(name);
-        collection.insertOne(document);
+        DBCollection collection = client.getDB(db).getCollection(name);
+        collection.insert(document);
+    }
+
+    // Find document with filter
+    public static DBCursor find(String db, String collection, BasicDBObject filter) {
+        return client.getDB(db).getCollection(collection).find(filter);
     }
 
     // Find document with filter: key = value<String>
-    public static MongoCursor<Document> find(String db, String collection, String key, String value) {
-        Bson filter = eq(key, value);
-        return client.getDatabase(db).getCollection(collection)
-                .find(filter).iterator();
+    public static DBCursor find(String db, String collection, String key, String value) {
+        BasicDBObject filter = new BasicDBObject(key, value);
+        return client.getDB(db).getCollection(collection)
+                .find(filter);
     }
 
     // Find document with filter: key = value<int>
-    public static MongoCursor<Document> find(String db, String collection, String key, int value) {
-        Bson filter = eq(key, value);
-        return client.getDatabase(db).getCollection(collection)
-                .find(filter).iterator();
+    public static DBCursor find(String db, String collection, String key, int value) {
+        BasicDBObject filter = new BasicDBObject(key, value);
+        return client.getDB(db).getCollection(collection)
+                .find(filter);
     }
 
-    public static void deleteMany(String db, String collection, Bson bson) {
-        client.getDatabase(db).getCollection(collection).deleteMany(bson);
+    // Find one document with filter: key = value<String>
+    public static DBObject findOne(String db, String collection, String key, String value) {
+        BasicDBObject filter = new BasicDBObject(key, value);
+        return client.getDB(db).getCollection(collection)
+                .findOne(filter);
+    }
+
+    public static void deleteMany(String db, String collection, BasicDBObject filter) {
+        client.getDB(db).getCollection(collection).remove(filter);
     }
 
     // Close connection

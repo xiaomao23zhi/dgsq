@@ -25,7 +25,7 @@ public class XDR implements Serializable {
     private String device;
 
     // xdr interface
-    private String name;
+    private String inerface;
 
     // xdr schemas
     private String schemas;
@@ -45,12 +45,15 @@ public class XDR implements Serializable {
     // xdr file name
     private String file;
 
+    // xdr long name
+    private String name;
+
     XDR() {
 
     }
 
     // Pharse XDR with standard file pattern: [name]_[yyyymmddHHmmss]_[vendor]_[device]_[sequence].txt
-    public XDR(String xdrFile) {
+    public XDR(String xdrFile, String xdrSchema) {
 
         logger.trace("Phrase XDR from {}", xdrFile);
 
@@ -59,29 +62,38 @@ public class XDR implements Serializable {
             this.file = xdrFile.substring(xdrFile.lastIndexOf("/") + 1);
             this.type = file.split("\\.")[1];
 
-            String pattern = file.split("\\.")[0];
-            logger.debug("pattern is [{}]", pattern);
-            String[] patterns = pattern.split("_");
+            this.name = file.split("\\.")[0];
+            logger.debug("pattern is [{}]", name);
+            String[] patterns = name.split("_");
 
             Date dateString = new SimpleDateFormat("yyyyMMddHHmmss").parse(patterns[1]);
 
-            this.name = patterns[0];
+            this.inerface = patterns[0];
             this.date = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(dateString);
             this.vendor = patterns[2];
             this.device = patterns[3];
             this.sequence = patterns[4];
 
             this.delimiter = AppSettings.config.getString("xdr.file.delimiter");
-            this.schemas=AppSettings.config.getString("xdr.schema." + this.name);
+            this.schemas = xdrSchema;
 
             logger.debug("XDR is [{}] [{}] [{}] [{}] [{}] [{}] [{}] [{}] [{}]",
-                    this.file, this.name, this.date, this.vendor, this.device, this.sequence, this.type, this.delimiter, this.schemas);
+                    this.file, this.inerface, this.date, this.vendor, this.device, this.sequence, this.type, this.delimiter, this.schemas);
 
         } catch (Exception e) {
             logger.error("Cannot phrase xdr file {}.", file);
             e.printStackTrace();
         }
 
+    }
+
+    public static void main(String[] args) {
+
+        logger.trace("Entering");
+        XDR xdr = new XDR("hdfs:///user/hadoop/dgsq/xdr/in/20180703/http_20180703150000_01_001_000.txt", "Length,Local_Province,Local_City,Owner_Province,Owner_City,Roaming_Type,Interface,xDR_ID,RAT,IMSI,IMEI_SV,MSISDN,Machine_IP_Add_type,SGW_GGSN_IP_Add,eNB_SGSN_IP_Add,PGW_Add,SGW_GGSN_Port,eNB_SGSN_Port,PGW_Port,eNB_SGSN_GTP_TEID,SGW_GGSN_GTP_TEID,TAC,Cell_ID,APN,App_Type_Code,Procedure_Start_Time,Procedure_End_Time,longitude,latitude,Height,Coordinate_system,Protocol_Type,App_Type,App_Sub_type,App_Content,App_Status,IP_address_type,USER_IPv4,USER_IPv6,User_Port,L4_protocal,App_Server_IP_IPv4,App_Server_IP_IPv6,App_Server_Port,UL_Data,DL_Data,UL_IP_Packet,DL_IP_Packet,updura,downdura,UL_Disorder_IP_Packet,DL_Disorder_IP_Packet,UL_Retrans_IP_Packet,DL_Retrans_IP_Packet,TCP_Response_Time,TCP_ACK_Time,UL_IP_FRAG_PACKETS,DL_IP_FRAG_PACKETS,First_Req_Time,First_Response_Time,Window,MSS_,TCP_SYN_Num,TCP_Status,Session_End,TCP_SYN_ACK_Mum,TCP_ACK_Num,TCP1_2_Handshake_Status,TCP2_3_Handshake_Status,UL_ProbeID,UL_LINK_Index,DL_ProbeID,DL_LINK_Index,TransactionID,Flow_Control,UL_AVG_RTT,DW_AVG_RTT,User_Account,Refer_XDR_ID,Rule_source,unkown1,unkown2,unkown3,unkown4,unkown5,unkown6,unkown7,unkown8,unkown9,unkown10,unkown11,unkown12,unkown13,unkown14,unkown15");
+        logger.trace("Exiting");
+
+        logger.trace(AppSettings.config.getString("app.version"));
     }
 
     public String getVendor() {
@@ -100,16 +112,20 @@ public class XDR implements Serializable {
         this.device = device;
     }
 
-    public String getName() {
-        return name;
+    public String getInerface() {
+        return inerface;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setInerface(String name) {
+        this.inerface = name;
     }
 
     public String getDate() {
         return date;
+    }
+
+    public void setDate(String date) {
+        this.date = date;
     }
 
     public String getSchemas() {
@@ -120,16 +136,20 @@ public class XDR implements Serializable {
         this.schemas = schemas;
     }
 
-    public void setDate(String date) {
-        this.date = date;
-    }
-
     public String getSequence() {
         return sequence;
     }
 
     public void setSequence(String sequence) {
         this.sequence = sequence;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     public String getDelimiter() {
@@ -154,14 +174,5 @@ public class XDR implements Serializable {
 
     public void setFile(String file) {
         this.file = file;
-    }
-
-    public static void main(String[] args) {
-
-        logger.trace("Entering");
-        XDR xdr = new XDR("hdfs:///user/hadoop/dgsq/xdr/in/20180703/http_20180703150000_01_001_000.txt");
-        logger.trace("Exiting");
-
-        logger.trace(AppSettings.config.getString("app.version"));
     }
 }

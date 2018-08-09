@@ -1,8 +1,10 @@
 package cmcc.cmri.dgsq.run;
 
 import cmcc.cmri.dgsq.pojos.XDR;
-import com.mongodb.client.MongoCursor;
-import com.mongodb.client.MongoDatabase;
+import com.mongodb.BasicDBObject;
+import com.mongodb.DB;
+import com.mongodb.DBCursor;
+import com.mongodb.DBObject;
 import com.mongodb.spark.MongoSpark;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.ContentSummary;
@@ -13,20 +15,19 @@ import org.apache.logging.log4j.Logger;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.api.java.function.Function;
-import org.apache.spark.sql.*;
+import org.apache.spark.sql.Dataset;
+import org.apache.spark.sql.Row;
+import org.apache.spark.sql.RowFactory;
+import org.apache.spark.sql.SparkSession;
 import org.apache.spark.sql.types.DataTypes;
 import org.apache.spark.sql.types.StructField;
 import org.apache.spark.sql.types.StructType;
-import org.bson.Document;
-import org.bson.conversions.Bson;
+import org.apache.spark.storage.StorageLevel;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-
-import static com.mongodb.client.model.Filters.and;
-import static com.mongodb.client.model.Filters.eq;
 
 public class RunCheck {
     // Define a static logger
@@ -38,7 +39,7 @@ public class RunCheck {
     // XDR file
     private String xdrFile;
     // MongoDB connection
-    private MongoDatabase mongo;
+    private DB mongo;
     // Spark
     private SparkSession spark;
     // Spark-Mongo connector
@@ -50,10 +51,10 @@ public class RunCheck {
     // File xdrCount
     private long xdrCount;
 
-    RunCheck(String xdrFile) {
+    RunCheck(String xdrFile, String xdrSchema) {
         // Phrase XDR from xdr file, pattern: hdf:///[path]/[name]_yyyymmddHHMMSS_[vendor]_[device ID]_[sequence].txt
         this.xdrFile = xdrFile;
-        xdr = new XDR(xdrFile);
+        xdr = new XDR(xdrFile, xdrSchema);
 
         //
         result = AppSettings.config.getString("check.file.ERR");
@@ -95,14 +96,14 @@ public class RunCheck {
     public static void main(final String[] args) {
 
         // Check args
-        if (args.length != 1) {
+        if (args.length != 2) {
             usage();
             System.exit(1);
         }
 
         logger.trace("Starting RunCheck on XDR file: [{}]", args[0]);
 
-        RunCheck runCheck = new RunCheck(args[0]);
+        RunCheck runCheck = new RunCheck(args[0], args[1]);
 
         runCheck.init();
         runCheck.fileCheck();
@@ -115,7 +116,8 @@ public class RunCheck {
     }
 
     public static void usage() {
-        logger.error("Usage: RunCheck [xdr file]. eg: RunCheck hdfs:///user/hadoop/xdr/http.txt");
+        logger.error("Usage: RunCheck [xdr file] [xdr schema]");
+        logger.error("  eg: eg: RunCheck hdfs:///user/hadoop/xdr/http.txt col1,col2,col3");
     }
 
     // Load xdr file
@@ -125,14 +127,14 @@ public class RunCheck {
 
         //df = spark.read().textFile(xdrFile).cache();
         df = spark.sparkContext()
-                .textFile(xdrFile, 8)
-                .toJavaRDD().cache();
+                .textFile(xdrFile, 1)
+                .toJavaRDD().persist(StorageLevel.MEMORY_AND_DISK_SER());
         result = AppSettings.config.getString("check.file.ERR");
 
 
         // Clean q_result_f and q_result_r
         logger.trace("Clean q_result_f and q_result_r records of XDR: [{}]", xdr.getFile());
-        Bson filter = eq("file_name",xdr.getFile());
+        BasicDBObject filter = new BasicDBObject("file_name",xdr.getFile());
         MongoManager.deleteMany(AppSettings.config.getString("mongo.db"), "q_results_f", filter);
         MongoManager.deleteMany(AppSettings.config.getString("mongo.db"), "q_results_r", filter);
     }
@@ -177,9 +179,9 @@ public class RunCheck {
         // Write to MongoDB
         // MongoCollection<Document> collection = mongo.getCollection("q_results_f");
 
-        Document document = new Document();
+        BasicDBObject document = new BasicDBObject();
         document.put("dpi_vendor", xdr.getVendor() + "_" + xdr.getDevice());
-        document.put("interface_name", xdr.getName());
+        document.put("interface_name", xdr.getInerface());
         document.put("file_name", xdr.getFile());
         document.put("file_date", xdr.getDate());
         document.put("file_size", length);
@@ -200,7 +202,7 @@ public class RunCheck {
         // Abnormal xdrCount
         long abnCount;
         // MongoDB connector
-        MongoCursor<Document> checks = null;
+        DBCursor checks = null;
 
         String delimiter = xdr.getDelimiter();
 
@@ -208,7 +210,7 @@ public class RunCheck {
             // Step 1. Generate the schema based on the string of schema
             logger.trace("Generate XDR schema");
             List<StructField> fields = new ArrayList<>();
-            for (String fieldName : xdr.getSchemas().split("\\|")) {
+            for (String fieldName : xdr.getSchemas().split(",")) {
                 StructField field = DataTypes.createStructField(fieldName, DataTypes.StringType, true);
                 fields.add(field);
             }
@@ -223,7 +225,7 @@ public class RunCheck {
             Dataset<Row> ds = spark.createDataFrame(rowRDD, schema);
 
             // Creates a temporary view using the DataFrame
-            ds.createOrReplaceTempView(xdr.getName());
+            ds.createOrReplaceTempView(xdr.getInerface());
             //// Convert to Parquet for better performance
             //logger.debug("Convert to Parquet");
             //ds.write().mode(SaveMode.Overwrite).parquet(xdr.getName() + ".parquet");
@@ -235,27 +237,46 @@ public class RunCheck {
             ds.show();
 
             // Step 2. Get all active checks for the XDR
-            checks = mongo.getCollection("q_checks")
-                    .find(and(eq("interface_name", xdr.getName()), eq("is_active", "1")))
-                    .iterator();
+            BasicDBObject filter = new BasicDBObject("interface_name",xdr.getInerface())
+                    .append("is_active", "1");
+            checks = MongoManager.find(AppSettings.config.getString("mongo.db"), "q_checks", filter);
 
             while (checks.hasNext()) {
                 // Step 3. Get rule def
-                Document check = checks.next();
-                String ruleId = check.getString("rule_id");
-                String ruleParams = check.getString("rule_params");
-                String checkId = check.getString("check_id");
-                String checkTarget = check.getString("check_target");
-                String checkName = check.getString("check_name");
+                DBObject check = checks.next();
+                String ruleId = (String) check.get("rule_id");
+                String ruleParams = (String) check.get("rule_params");
+                String checkId = (String) check.get("check_id");
+                String checkTarget = (String) check.get("check_target");
+                String checkName = (String) check.get("check_name");
                 String yyyymmdd = xdr.getDate().substring(0, 10).replace("-", "");
 
                 // Get rule_sql
-                String ruleSql = mongo.getCollection("q_rules")
-                        .find(eq("rule_id", ruleId)).first()
-                        .getString("rule_sql");
-
+                /*
+                switch (ruleId) {
+                    case "201":
+                        // NULL check
+                        abnormal = df.filter(line -> line.split(delimiter)[idx].isEmpty());
+                        break;
+                    case "202":
+                        // Zero check
+                        abnormal = df.filter(line -> "0".equals(line.split(delimiter)[idx]));
+                        break;
+                    case "203":
+                        // Range check
+                        abnormal = df.filter(line -> !ruleParams.contains(line.split(delimiter)[idx]));
+                        break;
+                    case "204":
+                        // Value check, don't know what to do this yet...
+                        break;
+                    default:
+                        logger.error("Unsupported check rule");
+                }
+                */
+                String ruleSql = (String) MongoManager.findOne(AppSettings.config.getString("mongo.db"), "q_rules", "rule_id", ruleId)
+                        .get("rule_sql");
                 // SELECT * FROM [table] WHERE [target] != null
-                ruleSql = ruleSql.replace("[table]", xdr.getName()).replace("[target]", checkTarget).replace("[params]",ruleParams);
+                ruleSql = ruleSql.replace("[table]", xdr.getInerface()).replace("[target]", checkTarget).replace("[params]",ruleParams);
                 logger.debug("rule_sql is {}", ruleSql);
 
                 // Step 4. Run rule on file
@@ -274,15 +295,15 @@ public class RunCheck {
                 Dataset<Row> abnLimit = abnormal.limit(AppSettings.config.getInt("xdr.abn,limit"));
 
                 //MongoSpark.write(abnLimit).mode("overwrite").save();
-                logger.trace("Writing abnormal data to MongoDB: {}.{}", yyyymmdd, checkId);
-                MongoSpark.write(abnLimit).option("database", yyyymmdd).option("collection", checkId).mode("overwrite").save();
+                logger.trace("Writing abnormal data to MongoDB: {}.{}", yyyymmdd, xdr.getName() + checkId);
+                MongoSpark.write(abnLimit).option("database", yyyymmdd).option("collection", xdr.getName() + checkId).mode("overwrite").save();
 
                 // Write to MongoDB
                 //MongoCollection<Document> collection = mongo.getCollection("q_results_r");
 
-                Document document = new Document();
+                BasicDBObject document = new BasicDBObject();
                 document.put("dpi_vendor", xdr.getVendor() + "_" + xdr.getDevice());
-                document.put("interface_name", xdr.getName());
+                document.put("interface_name", xdr.getInerface());
                 document.put("file_name", xdr.getFile());
                 document.put("file_date", xdr.getDate());
                 document.put("check_name", checkName);
@@ -290,7 +311,7 @@ public class RunCheck {
                 document.put("check_id", checkId);
                 document.put("check_counts", xdrCount);
                 document.put("abnormal_counts", abnCount);
-                document.put("abnormal_data", yyyymmdd + "." + checkId);
+                document.put("abnormal_data", yyyymmdd + "." + xdr.getName() + checkId);
                 document.put("timestamp", new Date());
 
                 MongoManager.insert(AppSettings.config.getString("mongo.db"), "q_results_r", document);

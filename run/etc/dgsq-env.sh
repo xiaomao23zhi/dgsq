@@ -4,7 +4,7 @@
 #
 
 # DGS-Q
-export DGSQ_HOME=/home/hadoop/dgsq
+export DGSQ_HOME=/home/cmcc/run
 
 # Java Enviroments Varaiables
 export JAVA_HOME=
