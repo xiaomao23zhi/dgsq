@@ -32,7 +32,7 @@ fi
 XDR_DATE=`echo ${XDR_FILE} | awk -F '_' '{print $2}' | cut -c 1-8`
 XDR_FILE_FULL=${XDR_HDFS_HOME}/${XDR_DATE}/${XDR_FILE}
 
-print_log "Starting rule-check for $XDR_INTERFACE $XDR_FILENAME"
+print_log "Starting 2-run-check for $XDR_INTERFACE hdfs://${HDFS_HOST}/${HDFS_HOME}/${XDR_DATE}/${XDR_FILE}"
 spark2-submit --class cmcc.cmri.dgsq.run.RunCheck \
     --master yarn \
     --deploy-mode client \
