@@ -67,7 +67,7 @@ public class RunCheck {
         String mongoInputUri;
         // Sparm-Mongo connector uri, mongdodb://[mongo.host]:[mongo.port]/[mongo.db].[collection]
         String mongoOutputUri;
-        String yyyymmdd = xdr.getDate().substring(0, 10).replace("-", "");
+        String yyyymmdd = "a" + xdr.getDate().substring(0, 10).replace("-", "");
 
         // mongdodb://[mongo.host]:[mongo.port]/[mongo.db].[collection]
         mongoInputUri = "mongodb://"
@@ -249,7 +249,7 @@ public class RunCheck {
                 String checkId = (String) check.get("check_id");
                 String checkTarget = (String) check.get("check_target");
                 String checkName = (String) check.get("check_name");
-                String yyyymmdd = xdr.getDate().substring(0, 10).replace("-", "");
+                String yyyymmdd = "a" + xdr.getDate().substring(0, 10).replace("-", "");
 
                 // Get rule_sql
                 /*

@@ -67,8 +67,8 @@ do
     print_log "Finished: "
 
     # Step 3. run quality rules on XDR file
-    print_log "Invoke: ${DGSQ_HOME}/bin/2-run-check.sh ${xdr_f} ${!xdr_s}}"
-    . ${DGSQ_HOME}/bin/2-run-check.sh ${xdr_f} ${!xdr_s}} >> ${DGSQ_HOME}/log/2-run-check.${run_date}.log
+    print_log "Invoke: ${DGSQ_HOME}/bin/2-run-check.sh ${xdr_f} ${!xdr_s}"
+    . ${DGSQ_HOME}/bin/2-run-check.sh ${xdr_f} ${!xdr_s} >> ${DGSQ_HOME}/log/2-run-check.${run_date}.log
     print_log "Finished: "
 done
 
