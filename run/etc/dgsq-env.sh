@@ -9,6 +9,9 @@ export DGSQ_HOME=/home/cmcc/run
 # Java Enviroments Varaiables
 export JAVA_HOME=
 
+# MongoDB
+export MONGO_HOME=/usr/bin
+
 # Use cloudera CDH, no need to set Hadoop/Spark env
 # Hadoop Enviroments Varaiables
 #export HADOOP_HOME=$DGSQ_HOME/hadoop-2.7.6

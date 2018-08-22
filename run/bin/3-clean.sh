@@ -27,10 +27,10 @@ fi
 
 # Step 2. Clean mongo
 sql="db.dropDatabase()"
-print_log "Cleaning Mongo: mongo $MONGO_HOST:$MONGO_PORT/${CLEAN_MONGO_DATE} --eval \"$sql\""
-if [ `echo ${CLEAN_MONGO_DATE} | awk '{print length($0)}'` -eq 8 ]
+print_log "Cleaning Mongo: ${MONGO_HOME}/mongo $MONGO_HOST:$MONGO_PORT/${CLEAN_MONGO_DATE} --eval \"$sql\""
+if [ `echo ${CLEAN_MONGO_DATE} | awk '{print length($0)}'` -eq 9 ]
 then
-    mongo $MONGO_HOST:$MONGO_PORT/${CLEAN_MONGO_DATE} --eval "$sql"
+    ${MONGO_HOME}/mongo $MONGO_HOST:$MONGO_PORT/${CLEAN_MONGO_DATE} --eval "$sql"
 fi
 
 # Step 3. Clean ${DGSQ_HOME}/log
