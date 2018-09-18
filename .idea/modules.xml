@@ -3,7 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/core/dgsq-core.iml" filepath="$PROJECT_DIR$/core/dgsq-core.iml" />
-      <module fileurl="file://$PROJECT_DIR$/run/run.iml" filepath="$PROJECT_DIR$/run/run.iml" />
+      <module fileurl="file://$PROJECT_DIR$/run/dgsq-run.iml" filepath="$PROJECT_DIR$/run/dgsq-run.iml" />
     </modules>
   </component>
 </project>

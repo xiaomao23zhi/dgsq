@@ -251,3 +251,16 @@
   "creater" : "wujia@chinamobile.com",
   "timestamp" : "2018-06-26 16:20:20"
 }
+{
+{
+  "check_id" : "20020001",
+  "check_name" : "IPV4和IPV6有且只有一个非空检查",
+  "interface_name" : "http",
+  "check_target" : "App_Server_IP_IPv4,App_Server_IP_IPv6",
+  "rule_id" : "2002",
+  "rule_params" : "(App_Server_IP_IPv4 = \"\" AND App_Server_IP_IPv6 = \"\") or (App_Server_IP_IPv4 != \"\" AND App_Server_IP_IPv6 != \"\")",
+  "is_active" : "1",
+  "creater" : "wujia@chinamobile.com",
+  "timestamp" : "2018-08-23 14:21:20"
+}
+}
