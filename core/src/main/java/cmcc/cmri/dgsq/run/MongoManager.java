@@ -4,6 +4,7 @@ import com.mongodb.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.util.Arrays;
 import java.util.Date;
 
 
@@ -16,9 +17,23 @@ public class MongoManager {
     static {
         try {
 
+            MongoCredential credential = MongoCredential.createCredential(
+                    AppSettings.config.getString("mongo.user"),
+                    "admin",
+                    AppSettings.config.getString("mongo.pass").toCharArray());
+
+            ServerAddress serverAddress = new ServerAddress(
+                    AppSettings.config.getString("mongo.host"),
+                    AppSettings.config.getInt("mongo.port"));
+
+            /*
             client = new MongoClient(
                     AppSettings.config.getString("mongo.host"),
                     AppSettings.config.getInt("mongo.port"));
+                    */
+            logger.trace("Connecting to Mongo: {}, {}", serverAddress.toString(), credential.toString());
+
+            client = new MongoClient(serverAddress, Arrays.asList(credential));
 
             logger.trace("Connected to MongoDB: {}", client.toString());
         } catch (Exception e) {
@@ -89,5 +104,15 @@ public class MongoManager {
     // Close connection
     public static void close() {
         client.close();
+    }
+
+    public static void main(String[] args) {
+
+        logger.trace("APP VERSION:[{}]", AppSettings.config.getString("app.version"));
+
+        DB mongo = MongoManager.getMongoDatabase(AppSettings.config.getString("mongo.db"));
+
+        logger.trace(mongo.toString());
+
     }
 }

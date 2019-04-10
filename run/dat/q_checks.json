@@ -55,9 +55,9 @@
 }
 {
   "check_id" : "10010006",
-  "check_name" : "Roaming_Type空值检查",
+  "check_name" : "ROAM_TYPE空值检查",
   "interface_name" : "http",
-  "check_target" : "Roaming_Type",
+  "check_target" : "ROAM_TYPE",
   "rule_id" : "1001",
   "rule_params" : "-",
   "is_active" : "1",
@@ -99,9 +99,9 @@
 }
 {
   "check_id" : "10010010",
-  "check_name" : "IMEI_SV空值检查",
+  "check_name" : "IMEI空值检查",
   "interface_name" : "http",
-  "check_target" : "IMEI_SV",
+  "check_target" : "IMEI",
   "rule_id" : "1001",
   "rule_params" : "-",
   "is_active" : "1",
@@ -175,28 +175,6 @@
   "timestamp" : "2018-06-26 16:20:20"
 }
 {
-  "check_id" : "10010017",
-  "check_name" : "Height空值检查",
-  "interface_name" : "http",
-  "check_target" : "Height",
-  "rule_id" : "1001",
-  "rule_params" : "-",
-  "is_active" : "1",
-  "creater" : "wujia@chinamobile.com",
-  "timestamp" : "2018-06-26 16:20:20"
-}
-{
-  "check_id" : "10010018",
-  "check_name" : "Coordinate_system空值检查",
-  "interface_name" : "http",
-  "check_target" : "Coordinate_system",
-  "rule_id" : "1001",
-  "rule_params" : "-",
-  "is_active" : "1",
-  "creater" : "wujia@chinamobile.com",
-  "timestamp" : "2018-06-26 16:20:20"
-}
-{
   "check_id" : "10010019",
   "check_name" : "App_Type空值检查",
   "interface_name" : "http",
@@ -252,7 +230,6 @@
   "timestamp" : "2018-06-26 16:20:20"
 }
 {
-{
   "check_id" : "20020001",
   "check_name" : "IPV4和IPV6有且只有一个非空检查",
   "interface_name" : "http",
@@ -262,5 +239,4 @@
   "is_active" : "1",
   "creater" : "wujia@chinamobile.com",
   "timestamp" : "2018-08-23 14:21:20"
-}
 }

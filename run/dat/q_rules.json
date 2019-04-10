@@ -3,7 +3,7 @@
   "rule_category" : "完整性",
   "rule_name" : "空值",
   "rule_description" : "取值为空（NULL）",
-  "rule_sql" : "SELECT * FROM [table] WHERE [target] = NULL",
+  "rule_sql" : "SELECT * FROM [table] WHERE [target] = \"\"",
   "creater" : "wujia@chinamobile.com",
   "timestamp" : "2018-06-26 16:11:23"
 }

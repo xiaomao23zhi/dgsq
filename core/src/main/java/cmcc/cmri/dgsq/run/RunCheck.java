@@ -71,16 +71,22 @@ public class RunCheck {
 
         // mongdodb://[mongo.host]:[mongo.port]/[mongo.db].[collection]
         mongoInputUri = "mongodb://"
+                + AppSettings.config.getString("mongo.user") + ":"
+                + AppSettings.config.getString("mongo.pass") + "@"
                 + AppSettings.config.getString("mongo.host") + ":"
                 + AppSettings.config.getInt("mongo.port") + "/"
                 + AppSettings.config.getString("mongo.db") + "."
-                + "q_checks";
+                + "q_checks"
+                + "?authSource=admin";
         // For abnormal data writing to Mongo
         mongoOutputUri = "mongodb://"
+                + AppSettings.config.getString("mongo.user") + ":"
+                + AppSettings.config.getString("mongo.pass") + "@"
                 + AppSettings.config.getString("mongo.host") + ":"
                 + AppSettings.config.getInt("mongo.port") + "/"
                 + AppSettings.config.getString("mongo.db") + "."
-                + yyyymmdd;
+                + yyyymmdd
+                + "?authSource=admin";
 
         logger.trace("Build SparkSession with urls: [{}] [{}]", mongoInputUri, mongoOutputUri);
 
@@ -128,7 +134,7 @@ public class RunCheck {
         //df = spark.read().textFile(xdrFile).cache();
         df = spark.sparkContext()
                 .textFile(xdrFile, 1)
-                .toJavaRDD().persist(StorageLevel.MEMORY_AND_DISK_SER());
+                .toJavaRDD();
         result = AppSettings.config.getString("check.file.ERR");
 
 
@@ -226,6 +232,7 @@ public class RunCheck {
 
             // Creates a temporary view using the DataFrame
             ds.createOrReplaceTempView(xdr.getInerface());
+            ds.persist(StorageLevel.MEMORY_AND_DISK());
             //// Convert to Parquet for better performance
             //logger.debug("Convert to Parquet");
             //ds.write().mode(SaveMode.Overwrite).parquet(xdr.getName() + ".parquet");
