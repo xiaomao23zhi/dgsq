@@ -1,3 +1,6 @@
 # dgsq
 
-This branch is for running on Spark 2.x.
+Software requirements:
+1. Mongodb 2.6.x
+2. Spark 1.x
+3. Scala 2.10

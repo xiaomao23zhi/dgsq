@@ -12,13 +12,11 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.api.java.function.Function;
-import org.apache.spark.sql.Dataset;
-import org.apache.spark.sql.Row;
-import org.apache.spark.sql.RowFactory;
-import org.apache.spark.sql.SparkSession;
+import org.apache.spark.sql.*;
 import org.apache.spark.sql.types.DataTypes;
 import org.apache.spark.sql.types.StructField;
 import org.apache.spark.sql.types.StructType;
@@ -33,7 +31,7 @@ public class RunCheck {
     // Define a static logger
     private static final Logger logger = LogManager.getLogger(RunCheck.class);
     // Dataset for xdr file
-    JavaRDD<String> df;
+    JavaRDD<String> rdd;
     // XDR
     private XDR xdr;
     // XDR file
@@ -41,9 +39,11 @@ public class RunCheck {
     // MongoDB connection
     private DB mongo;
     // Spark
-    private SparkSession spark;
+    private SparkConf sc;
     // Spark-Mongo connector
     private JavaSparkContext jsc;
+    // Spark SQL Context
+    private SQLContext sqlContext;
     // File check result
     private String result;
     // File size
@@ -85,17 +85,19 @@ public class RunCheck {
                 + AppSettings.config.getString("mongo.host") + ":"
                 + AppSettings.config.getInt("mongo.port") + "/"
                 + AppSettings.config.getString("mongo.db") + "."
-                + yyyymmdd
+                + "q_results_r"
                 + "?authSource=admin";
 
         logger.trace("Build SparkSession with urls: [{}] [{}]", mongoInputUri, mongoOutputUri);
 
         // Init Spark
-        spark = SparkSession.builder().appName("dgsq - RunCheck")
-                .config("spark.mongodb.input.uri", mongoInputUri)
-                .config("spark.mongodb.output.uri", mongoOutputUri)
-                .getOrCreate();
-        jsc = new JavaSparkContext(spark.sparkContext());
+        sc = new SparkConf()
+                .setAppName("dgsq - RunCheck")
+                .set("spark.mongodb.input.uri", mongoInputUri)
+                .set("spark.mongodb.output.uri", mongoOutputUri);
+
+        jsc = new JavaSparkContext(sc);
+        sqlContext = new SQLContext(jsc);
     }
 
     // Main
@@ -131,10 +133,8 @@ public class RunCheck {
 
         logger.trace("Loading XDR file to Spark.");
 
-        //df = spark.read().textFile(xdrFile).cache();
-        df = spark.sparkContext()
-                .textFile(xdrFile, 1)
-                .toJavaRDD();
+        //rdd = spark.read().textFile(xdrFile).cache();
+        rdd = jsc.textFile(xdrFile);
         result = AppSettings.config.getString("check.file.ERR");
 
 
@@ -147,7 +147,7 @@ public class RunCheck {
 
     //
     private void release() {
-        spark.close();
+        jsc.close();
     }
 
     // Check xdr file
@@ -170,7 +170,7 @@ public class RunCheck {
         }
 
         logger.debug("Calculating file xdrCount: " + xdrFile);
-        xdrCount = df.count();
+        xdrCount = rdd.count();
 
         logger.debug("File size: [{}], File xdrCount: [{}]", +length, xdrCount);
 
@@ -222,17 +222,17 @@ public class RunCheck {
             }
             StructType schema = DataTypes.createStructType(fields);
             // Convert records of the RDD (people) to Rows
-            JavaRDD<Row> rowRDD = df.map((Function<String, Row>) record -> {
+            JavaRDD<Row> rowRDD = rdd.map((Function<String, Row>) record -> {
                 String[] attributes = record.split(delimiter);
                 return RowFactory.create(attributes);
             });
 
             // Apply the schema to the RDD
-            Dataset<Row> ds = spark.createDataFrame(rowRDD, schema);
+            DataFrame df = sqlContext.createDataFrame(rowRDD, schema);
 
             // Creates a temporary view using the DataFrame
-            ds.createOrReplaceTempView(xdr.getInerface());
-            ds.persist(StorageLevel.MEMORY_AND_DISK());
+            df.registerTempTable(xdr.getInerface());
+            df.persist(StorageLevel.MEMORY_AND_DISK());
             //// Convert to Parquet for better performance
             //logger.debug("Convert to Parquet");
             //ds.write().mode(SaveMode.Overwrite).parquet(xdr.getName() + ".parquet");
@@ -241,7 +241,7 @@ public class RunCheck {
             //dsParquet.schema();
 
             logger.debug("Show schema");
-            ds.show();
+            df.show();
 
             // Step 2. Get all active checks for the XDR
             BasicDBObject filter = new BasicDBObject("interface_name",xdr.getInerface())
@@ -263,15 +263,15 @@ public class RunCheck {
                 switch (ruleId) {
                     case "201":
                         // NULL check
-                        abnormal = df.filter(line -> line.split(delimiter)[idx].isEmpty());
+                        abnormal = rdd.filter(line -> line.split(delimiter)[idx].isEmpty());
                         break;
                     case "202":
                         // Zero check
-                        abnormal = df.filter(line -> "0".equals(line.split(delimiter)[idx]));
+                        abnormal = rdd.filter(line -> "0".equals(line.split(delimiter)[idx]));
                         break;
                     case "203":
                         // Range check
-                        abnormal = df.filter(line -> !ruleParams.contains(line.split(delimiter)[idx]));
+                        abnormal = rdd.filter(line -> !ruleParams.contains(line.split(delimiter)[idx]));
                         break;
                     case "204":
                         // Value check, don't know what to do this yet...
@@ -287,7 +287,7 @@ public class RunCheck {
                 logger.debug("rule_sql is {}", ruleSql);
 
                 // Step 4. Run rule on file
-                Dataset<Row> abnormal = spark.sql(ruleSql);
+                DataFrame abnormal = sqlContext.sql(ruleSql);
 
                 logger.debug("Counting abnormal counts");
                 if (abnormal != null) {
@@ -299,7 +299,7 @@ public class RunCheck {
                 logger.trace("Finished check rule[{}] on target[{}] with params[{}], abnormal counts[{}]",
                         ruleId, checkTarget, ruleParams, abnCount);
 
-                Dataset<Row> abnLimit = abnormal.limit(AppSettings.config.getInt("xdr.abn.limit"));
+                DataFrame abnLimit = abnormal.limit(AppSettings.config.getInt("xdr.abn.limit"));
 
                 //MongoSpark.write(abnLimit).mode("overwrite").save();
                 logger.trace("Writing abnormal data to MongoDB: {}.{}", yyyymmdd, xdr.getName() + checkId);
@@ -329,7 +329,6 @@ public class RunCheck {
 
         } finally {
             jsc.close();
-            spark.close();
             if (checks != null) {
                 checks.close();
             }
