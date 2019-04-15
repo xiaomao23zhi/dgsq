@@ -327,6 +327,14 @@ public class RunCheck {
                 //collection.insertOne(document);
             }
 
+        } catch (Exception ex) {
+
+            if(ex instanceof ArrayIndexOutOfBoundsException) {
+                logger.error("Schema does not match data");
+            } else {
+                logger.error("Something is wrong...");
+            }
+            ex.printStackTrace();
         } finally {
             jsc.close();
             if (checks != null) {
